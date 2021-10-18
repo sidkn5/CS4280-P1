@@ -28,7 +28,8 @@ int main(int argc, char* argv[]){
 			std::cout << "Opening and working with the file..." << endl;
 			//printTest(filename);
 			//filter(filename);
-			fsaDriver(filename);
+			//fsaDriver(filename);
+			testScanner(filename);
 		}
 		else {
 			std::cout << "The file does not exist! Terminating..." << endl;

@@ -19,17 +19,25 @@ std::string keywords[] = {
 	"start", "stop", "loop", "while", "for", "label", "exit", "listen", "talk", "program", "if", "then", "assign", "declare", "jump", "else"
 };
 
+
+std::string tokenNames[] = {
+	"HolderTk", "IDTk", "INTEGERTk", "WSTk", "EQUALTk", "EQEQTk", "GREATERTHANTk", "LESSTHANTk", "COLONTk",
+	"COLONEQTk", "PLUSTk", "MINUSTk", "MULTIPLYTk", "DIVIDETk", "MODULUSTk", "DOTTk", "LEFTPARENTK", 
+	"RIGHTPARENTk", "COMMATk", "LEFTBRACETk", "RIGHTBRACETk", "SEMICOLONTk", "LEFTBRACKETTk", "RIGHTBRACKETTk",
+	"EOFTk", "KEYWORDTk"
+};
+
 int fsaTable[rowSize][colSize] = {
 	//  a-z   A-Z   0-9     $    WS     =     >     <     :     +	   -	  *      /	   %	   .	  (	     )	    ,	   {	  }	     ;     [       ]    EOF
-	{   s2,	   s2,   s3,   s2,   s4,   s5,   s7,   s8,   s9,  s11,   s12,   s13,   s14,   s15,   s16,   s17,   s18,   s19,   s20,   s21,   s22,   s23,   s24,   s25, FINAL},	//s1
+	{   s2,	ERROR,   s3,   s2,   s4,   s5,   s7,   s8,   s9,  s11,   s12,   s13,   s14,   s15,   s16,   s17,   s18,   s19,   s20,   s21,   s22,   s23,   s24,   s25, FINAL},	//s1
 	{   s2,    s2,   s2,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s2
 	{FINAL, FINAL,   s3,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s3
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s4
 	{FINAL, FINAL,FINAL,FINAL,FINAL,   s6,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s5
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s6
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s7
-	{FINAL, FINAL,FINAL,FINAL,FINAL,  s10,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s8
-	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s9
+	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s8
+	{FINAL, FINAL,FINAL,FINAL,FINAL,  s10,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s9
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s10
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s11
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s12
@@ -76,6 +84,28 @@ std::map<char, int> columnInt = {
 	{EOF, 23},      //EOF
 	{'\0',24}
 };
+
+
+void testScanner(std::string filename) {
+	std::vector <token> tks = fsaDriver(filename);
+	printTokenVector(tks);
+}
+
+void printTokenVector(std::vector<token> &tks) {
+
+
+
+	for (int i = 0; i < tks.size(); i++) {
+		if (tks[i].type == 0 || tks[i].type == 3) {
+			//these are holder tks, don't print
+		}
+		else {
+			std::cout << "[" << tokenNames[tks[i].type] << ", \"" << tks[i].tokenString
+				<< "\", line " << tks[i].lineNum << "]" << std::endl;
+		}
+	}
+}
+
 
 void printTest(std::string file) {
 	//std::cout << keywords[1];
@@ -128,12 +158,14 @@ LinesContainer filter(std::string filename, int lineNumber) {
 }
 
 
-void fsaDriver(std::string filename) {
+std::vector<token> fsaDriver(std::string filename) {
 	LinesContainer currentLine;
 	
 	int tableColumn = 10;
 	int currentLineNum = 1;
 	int numOfLines = 0;
+
+	std::vector <token> allTokens;
 
 	//pseudo from powerpoint
 	int state = s1;
@@ -143,6 +175,11 @@ void fsaDriver(std::string filename) {
 	int lookahead = 0;
 	std::string word = "";
 	int charColumn;
+	int tokenIntType;
+
+	
+
+	//token test;
 	
 	while (!currentLine.endOfFile) {
 
@@ -160,13 +197,32 @@ void fsaDriver(std::string filename) {
 				printError();
 			}
 			else if (nextState == FINAL) {
-				std::cout << word << " ID TOKEN" << " line Number " << currentLineNum << "\n";
-				word = "";
-				state = s1;
-				nextState = fsaTable[state][charColumn];
-				word.append(1, currentLine.value[i]);
-				if (nextState != FINAL) {
-					state = nextState;
+				if (checkKeyword(word)) {
+
+					//std::cout << word << " Key TOKEN" << " line Number " << currentLineNum << "\n";
+					//tokenIntType = state;
+					//std::cout << word << " Key TOKEN" << " line Number " << currentLineNum << "\n";
+					std::cout << "value: " << word << " line Number: " << currentLineNum << " token: " << KEYWORDTK << "\n";
+					allTokens.push_back(getToken(KEYWORDTK, word, currentLineNum));
+					word = "";
+					state = s1;
+					nextState = fsaTable[state][charColumn];
+					word.append(1, currentLine.value[i]);
+					if (nextState != FINAL) {
+						state = nextState;
+					}
+				} else {
+					tokenIntType = state;
+					
+					//std::cout << "value: " << word << " line Number: " << currentLineNum << " token: " << tokenNames[tokenIntType] << "\n";
+					allTokens.push_back(getToken(tokenType(tokenIntType), word, currentLineNum));
+					word = "";
+					state = s1;
+					nextState = fsaTable[state][charColumn];
+					word.append(1, currentLine.value[i]);
+					if (nextState != FINAL) {
+						state = nextState;
+					}
 				}
 				
 			}
@@ -179,10 +235,12 @@ void fsaDriver(std::string filename) {
 			}
 
 		}
-		std::cout << "heare\n";
+		//std::cout << "\n";
 
 		currentLineNum++;
 	}
+
+	return allTokens;
 
 }
 
@@ -196,9 +254,34 @@ int getIntFsa(char ch) {
 	else if (isspace(ch)) {
 		return WS;
 	}
-	else if (ch == ':') {
-		return COLON;
+	else if (isdigit(ch)) {
+		return INTEGER;
 	}
 	
 	return columnInt[ch];
+}
+
+bool checkKeyword(std::string str) {
+	int keywordNum = 16;
+	token temp;
+	std::string keywordStrings[keywordNum] = {
+		"start", "stop", "loop", "while", "for", "label", "exit", "listen",
+		"talk", "program", "if", "then", "assign", "declare", "jump", "else"
+	};
+	for (int i = 0; i < keywordNum; i++) {
+		if (str == keywordStrings[i]) {
+			
+			return true;
+		}
+	}
+	return false;
+}
+
+token getToken(tokenType type, std::string value, int lineNum) {
+	token tokenStr;
+	tokenStr.type = type;
+	tokenStr.tokenString = value;
+	tokenStr.lineNum = lineNum;
+
+	return tokenStr;
 }
