@@ -10,9 +10,6 @@
 enum tokenType {
 	//identifier, integer and eof
 	HOLDERTK, IDTK, INTEGERTK, WSTK, 
-	
-	
-
 
 	//operators and delimiters
 	EQUALTK, EQEQTK, GREATERTHANTK, LESSTHANTK, COLONTK,
@@ -21,7 +18,6 @@ enum tokenType {
 	EOFTK,
 	//reserved keywords
 	KEYWORDTK, 
-	
 	STARTTK, STOPTK, LOOPTK, WHILETK, FORTK, LABELTK, EXITTK, LISTENTK, TALKTK,
 	PROGRAMTK, IFTK, THENTK, ASSIGNTK, DECLARETK, JUMPTK, ELSETK
 	

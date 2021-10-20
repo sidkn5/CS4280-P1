@@ -1,5 +1,10 @@
-//Student: Sean Dela Pena
-
+/*Student: Sean Dela Pena
+* File: scanner.cpp
+* 
+* This file contains most of the functionality of the scanner.
+* This file also contains the testscanner that calls the fsaDriver
+* and print the tokens.
+*/
 #include "scanner.hpp"
 #include "token.hpp"
 #include "character.hpp"
@@ -7,10 +12,12 @@
 
 const int rowSize = 28;
 const int colSize = 25;
+
 int specificKeyword = 0;
 int charNumber = 0;
 bool startComment = false;
 bool endComment = false;
+
 enum states {
 	ERROR = -1, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11,
 	s12, s13, s14, s15, s16, s17, s18, s19, s20, s21, s22, s23,
@@ -88,13 +95,15 @@ std::map<char, int> columnInt = {
 	{';', SEMICOLON},
 	{'[', LEFTBRACKET},
 	{']', RIGHTBRACKET}, {EOF, 23},      //EOF
-	{'\0',24}
+	{'\0',24},
 };
 
 
 void testScanner(std::string filename) {
+	
 	std::vector <token> tks = fsaDriver(filename);
 	printTokenVector(tks);
+
 }
 
 void printTokenVector(std::vector<token> &tks) {
@@ -114,119 +123,55 @@ void printTokenVector(std::vector<token> &tks) {
 }
 
 
-void printTest(std::string file) {
-	//std::cout << keywords[1];
-	//std::cout << file;
-	//std::cout << filter(file);
-	LinesContainer printThis;
-	//printThis = filter(file);
-	std::cout << printThis.value;
-}
-
 void printError(std::string str, int line, int charNumber) {
 	std::cout << "This is an error state, terminating...\n";
-	std::cout << "ERORR SCANNER: Error in word " << "\"" << str << "\"" << " line: " << line << ":" << charNumber << "\n";
+	std::cout << "ERORR SCANNER: Error in character " << "\"" << str << "\"" << " line: " << line << ":" << charNumber << "\n";
+	
+	exit(1);
 }
 
-/*
-void filterComments(std::string filename) {
-	std::ifstream file;
-	LinesContainer buffer;
 
-	file.open(filename);
-	if (std::getline(file, buffer.value)) {
-		buffer.value.insert(0, 1, ' ');
-
-		for (int i = 0; i < buffer.value.size(); i++) {
-
-			if (startComment == true && buffer.value[i] == '&' && buffer.value[i + 1] == '&') {
-				buffer.value[i] == ' ';
-				buffer.value[i + 1] == ' ';
-				startComment = false;
-				i++;
-
-			}
-			else if (startComment) {
-
-				buffer.value[i] = ' ';
-				//buffer.value[i+1] = ' ';
-
-			}
-			else if (buffer.value[i] == '&' && buffer.value[i + 1] == '&') {
-				buffer.value[i] == ' ';
-				buffer.value[i + 1] == ' ';
-
-				startComment = true;
-				i++;
-
-			}
-		}
-	}
-
-	std::cout << buffer.value << "\n";
-}
-
-void checkWhiteSpace(std::string &line) {
-	for (int i = 0; i < line.size(); i++) {
-		if (line[i] == ' ')
-			line = "";
-	}
-}*/
-
+//this function filters line and removes the comments, also checks for invalid characters
 LinesContainer filter(std::string filename, int lineNumber) {
 	std::ifstream file;
 	LinesContainer buffer;
 	int line = 0;
 	file.open(filename);
 
-	while (lineNumber) {
-		
-		if (std::getline(file, buffer.value)) {	
-			
+	while (lineNumber) {	
+		if (std::getline(file, buffer.value)) {			
 			line++;
-			//std::cout << buffer.value << line << std::endl;
 			lineNumber--;
 			buffer.value.insert(0, 1, ' ');
-			//std::cout << "line: " << lineNumber << " boolean: " << startComment << "\n";
-			//std::cout << buffer.value <<  " boolean " << startComment << "\n";
-			
 
-			//remove the comments
+			//remove the comments, and check for invalid characters
 			for (int i = 0; i < buffer.value.size(); i++) {
-				
-				if (startComment == true && buffer.value[i] == '&' && buffer.value[i + 1] == '&') {
-					//buffer.value[i] == ' ';
-					//buffer.value[i + 1] == ' ';
-					startComment = false;
 
+				if (startComment == true && buffer.value[i] == '&' && buffer.value[i + 1] == '&') {
+					startComment = false;
 					i++;
 					break;
 				}
 				else if (startComment) {
 					buffer.value[i] = ' ';
-					
 				}
-
 				else if (buffer.value[i] == '&' && buffer.value[i + 1] == '&') {
-					//buffer.value[i] == ' ';
-					//buffer.value[i + 1] == ' ';
-
 					startComment = true;
-
 					i++;
-
 				}
-				
-		
+
+				else if (buffer.value[i] == '!' || buffer.value[i] == '@' || buffer.value[i] == '^'
+					&& buffer.value[i] == '?' || buffer.value[i] == '`' || buffer.value[i] == '|'
+					|| buffer.value[i] == '#' || buffer.value[i] == '\"' || buffer.value[i] == '\\')
+				{
+					printError(std::string(1, buffer.value[i]), line, i);
+				}
 			}
-			
-	
+		
 			if (lineNumber <= 0) break;
 		}
 		else {
-			
-			buffer.endOfFile = true;
-			
+			buffer.endOfFile = true;		//end of file reached
 			break;
 		}
 
@@ -234,55 +179,51 @@ LinesContainer filter(std::string filename, int lineNumber) {
 	}
 	replace(buffer.value.begin(), buffer.value.end(), '&', ' ');
 	startComment = false;		
-	std::cout << buffer.value << std::endl;
 	buffer.lineNum = line;
 	return buffer;
 }
 
-
+//FSA DRIVER, this function takes in the filename, filters the file, and tokenizes the 
+//input line by line
+//returns a vector of tokens that can be printed
 std::vector<token> fsaDriver(std::string filename) {
-	LinesContainer currentLine;
 	
-	int tableColumn = 10;
-	int currentLineNum = 1;
-	int numOfLines = 0;
-
-	std::vector <token> allTokens;
 
 	//pseudo from powerpoint
+	LinesContainer currentLine;
+	std::vector <token> allTokens;
 	int state = s1;
 	int nextState;
 	token newToken;
 	char nextChar;			//+1 lookahead
-	int lookahead = 0;		//not used
 	std::string word = "";
 	int charColumn;
 	int tokenIntType;
 	int previousState;		//might be helpful?
-	
+	int currentLineNum = 1;
 
-	//token test;
 	
+	//go through the file until you get EOF
 	while (!currentLine.endOfFile) {
 
-		currentLine = filter(filename, currentLineNum);
+		currentLine = filter(filename, currentLineNum);			//get that line from the file and clean it
 		int length = currentLine.value.size();
-		charNumber = 0;
-		//std::cout << "size " << currentLine.value.size() << "\n";
+		charNumber = 0;											//character number counter per line
 		for (int i = 0; i < length; i++) {
-			charColumn = getIntFsa(currentLine.value[i]);
+			charColumn = getIntFsa(currentLine.value[i], currentLineNum, charNumber);
 			nextState = fsaTable[state][charColumn];
 			charNumber = i-1;
 			
+			
 			if (nextState <= ERROR || nextState > FINAL) {
-				//std::cout << "ERROR: \n";
-				printError(word, currentLineNum, charNumber);
-				exit(1);
+				printError(word, currentLineNum, charNumber);		//somthing wrong with input, terminate
+				exit(1);											//display what caused the error
 			}
-			else if (nextState == FINAL) {
+			else if (nextState == FINAL) {				
 			
 				specificKeyword = 0;
 				if (checkKeyword(word)) {
+					//tokenize
 					allTokens.push_back(getToken(tokenType(KEYWORDTK + specificKeyword), word, currentLineNum, (charNumber-word.size() + 1)));
 					word = "";
 					state = s1;
@@ -294,22 +235,7 @@ std::vector<token> fsaDriver(std::string filename) {
 					}
 				}
 				else {
-					/*/reset the word
-					if (charNumber < 0 && tokenType(previousState) == WSTK) {
-						//tokenIntType = state;
-						//spreviousState = getIntFsa(word[word.size() -1]);
-						
-						allTokens.push_back(getToken(tokenType(previousState), word, currentLineNum-1, (currentLine.value.size() - word.size())));
-						//allTokens.push_back(getToken(tokenType(tokenIntType), "hello", currentLineNum - 1, (currentLine.value.size() - word.size())));
-						//std::cout << "Token word: " << word << " char " << charNumber << " token type " << tokenType(tokenIntType-1)  << "\n";
-						word = "";
-						
-					}*/
-					//else {
-						previousState = state;
-						//previousState = getIntFsa(word[word.size() - 1]);
 						tokenIntType = state;
-						//std::cout << "value: " << word << " line Number: " << currentLineNum << " token: " << tokenNames[tokenIntType] << "\n";
 						allTokens.push_back(getToken(tokenType(tokenIntType), word, currentLineNum, (charNumber - word.size() + 1)));
 						word = "";
 						state = s1;
@@ -328,10 +254,11 @@ std::vector<token> fsaDriver(std::string filename) {
 				state = nextState;
 				word.append(1, nextChar);
 				nextChar = currentLine.value[i + 1];
-				charColumn = getIntFsa(nextChar);
+				charColumn = getIntFsa(nextChar,currentLineNum, charNumber);
 			}
 
 		}
+
 		//after going through the line there will be one last string the is stored in word, tokenize it.
 		//check if last is keyword
 		specificKeyword = 0;
@@ -340,22 +267,30 @@ std::vector<token> fsaDriver(std::string filename) {
 			word = "";		//reset the word after tokenizing
 		}
 		else {
-			allTokens.push_back(getToken(tokenType(state), word, currentLineNum, (charNumber - word.size())));
+			int n = charNumber - word.size();
+			if (n <= 0) { 
+				charNumber ++;	//since we counted WS as a character, we need to increment
+			}
+			if (nextState <= ERROR || nextState > FINAL) {
+				printError(word, currentLineNum, charNumber);		//somthing wrong with input, terminate
+				exit(1);											//display what caused the error
+			}
+			allTokens.push_back(getToken(tokenType(state), word, currentLineNum, (charNumber - word.size()) + 1));
 			word = "";		//reset the word after tokenizing
 		}
-		
-		
+
 		currentLineNum++;
 	}
 
 	//when endOfFile is true add an EOFTK at the end
+	
 	allTokens.push_back(getToken(EOFTK, "EOF", currentLineNum-1, 0));
 
 	return allTokens;
-
 }
 
-int getIntFsa(char ch) {
+//will get the fsa table column int
+int getIntFsa(char ch, int l, int n) {
 	//the symbols are in a map
 	if (islower(ch)) {
 		return LOWERCASE;
@@ -369,10 +304,12 @@ int getIntFsa(char ch) {
 	else if (isdigit(ch)) {
 		return INTEGER;
 	}
-	
 	return columnInt[ch];
 }
 
+
+//checks wheter the word in its final state is a keyword, 
+//increment to get the specific keyword
 bool checkKeyword(std::string str) {
 	int keywordNum = 16;
 	
@@ -384,13 +321,13 @@ bool checkKeyword(std::string str) {
 	for (int i = 0; i < keywordNum; i++) {
 		specificKeyword++;
 		if (str == keywordStrings[i]) {
-			
 			return true;
 		}
 	}
 	return false;
 }
 
+//tokenizer
 token getToken(tokenType type, std::string value, int lineNum, int charNum) {
 	token tokenStr;
 	tokenStr.type = type;

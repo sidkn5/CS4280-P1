@@ -19,12 +19,9 @@
 
 void testScanner(std::string filename);
 void printTokenVector(std::vector<token> &tks);
-void printTest(std::string file);
-//void filterComments(std::string filename);
-//void checkWhiteSpace(std::string& line);
 LinesContainer filter(std::string filename,int lineNumber);
 std::vector<token> fsaDriver(std::string filename);
-int getIntFsa(char ch);
+int getIntFsa(char ch, int l, int n);
 void printError(std::string str, int line, int charNumber);
 bool checkKeyword(std::string str);
 token getToken(tokenType type, std::string value, int lineNum, int charNum);

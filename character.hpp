@@ -1,5 +1,5 @@
 // Student: Sean Dela Pena
-// Node.h header file
+// File: character.hpp
 //
 
 
