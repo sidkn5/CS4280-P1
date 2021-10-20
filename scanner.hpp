@@ -1,7 +1,8 @@
 //Student: Sean Dela Pena
 //File: scanner.hpp
 //
-//
+//Source: https://www.geeksforgeeks.org/remove-comments-given-cc-program/
+//	modified for our project needs
 //
 
 
@@ -14,16 +15,17 @@
 #include <fstream>
 #include <map>
 #include <vector>
-
+#include <algorithm>
 
 void testScanner(std::string filename);
 void printTokenVector(std::vector<token> &tks);
 void printTest(std::string file);
-void filterComments(std::string line);
+//void filterComments(std::string filename);
+//void checkWhiteSpace(std::string& line);
 LinesContainer filter(std::string filename,int lineNumber);
 std::vector<token> fsaDriver(std::string filename);
 int getIntFsa(char ch);
-void printError();
+void printError(std::string str, int line, int charNumber);
 bool checkKeyword(std::string str);
-token getToken(tokenType type, std::string value, int lineNum);
+token getToken(tokenType type, std::string value, int lineNum, int charNum);
 #endif

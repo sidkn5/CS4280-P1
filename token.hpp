@@ -20,18 +20,18 @@ enum tokenType {
 	COMMATK, LEFTBRACETK, RIGHTBRACETK, SEMICOLONTK, LEFTBRACKETTK, RIGHTBRACKETTK,
 	EOFTK,
 	//reserved keywords
-	KEYWORDTK
-	/* Might switch to this approach later
+	KEYWORDTK, 
+	
 	STARTTK, STOPTK, LOOPTK, WHILETK, FORTK, LABELTK, EXITTK, LISTENTK, TALKTK,
 	PROGRAMTK, IFTK, THENTK, ASSIGNTK, DECLARETK, JUMPTK, ELSETK
-	*/
+	
 };
 
 struct token{
 	tokenType type;
 	std::string tokenString;
 	int lineNum;
-
+	int charNum;
 };
 
 
