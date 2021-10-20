@@ -4,6 +4,8 @@
 * This file contains most of the functionality of the scanner.
 * This file also contains the testscanner that calls the fsaDriver
 * and print the tokens.
+* 
+* You will find the FSA Table and FSA driver here.
 */
 #include "scanner.hpp"
 #include "token.hpp"
