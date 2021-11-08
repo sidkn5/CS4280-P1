@@ -12,7 +12,7 @@
 #include "character.hpp"
 
 
-const int rowSize = 28;
+const int rowSize = 26;
 const int colSize = 25;
 
 int specificKeyword = 0;
@@ -41,7 +41,7 @@ std::string tokenNames[] = {
 };
 
 int fsaTable[rowSize][colSize] = {
-	//  a-z   A-Z   0-9     $    WS     =     >     <     :     +	   -	  *      /	   %	   .	  (	     )	    ,	   {	  }	     ;     [       ]    EOF
+	//  a-z   A-Z   0-9     $    WS     =     >     <     :     +	   -	  *      /	   %	   .	  (	     )	    ,	   {	  }	;     [       ]    EOF
 	{   s2,	ERROR,   s3,   s2,   s4,   s5,   s7,   s8,   s9,  s11,   s12,   s13,   s14,   s15,   s16,   s17,   s18,   s19,   s20,   s21,   s22,   s23,   s24,   s25, FINAL},	//s1
 	{   s2,    s2,   s2,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s2
 	{FINAL, FINAL,   s3,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s3
@@ -67,9 +67,7 @@ int fsaTable[rowSize][colSize] = {
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s23
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s24
 	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s25
-	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s25
-	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s25
-	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s25
+	{FINAL, FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL,FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL, FINAL},	//s26
 
 };
 
@@ -97,7 +95,7 @@ std::map<char, int> columnInt = {
 	{';', SEMICOLON},
 	{'[', LEFTBRACKET},
 	{']', RIGHTBRACKET}, {EOF, 23},      //EOF
-	{'\0',24},
+	{'\0',24} 				//end of a string
 };
 
 
@@ -114,6 +112,8 @@ void printTokenVector(std::vector<token> &tks) {
 		if (tks[i].type == HOLDERTK || tks[i].type == WSTK || tks[i].tokenString == "") {
 			//since we considered WS as a tk to help with the FSA TABLE our vector will
 			//have WStks but we don't need it so delete them
+			//might need to do this before taking the tokens for the next project
+			//move to its own function
 			tks.erase(tks.begin() + i);
 			i--;
 		}
@@ -160,13 +160,6 @@ LinesContainer filter(std::string filename, int lineNumber) {
 				else if (buffer.value[i] == '&' && buffer.value[i + 1] == '&') {
 					startComment = true;
 					i++;
-				}
-
-				else if (buffer.value[i] == '!' || buffer.value[i] == '@' || buffer.value[i] == '^'
-					&& buffer.value[i] == '?' || buffer.value[i] == '`' || buffer.value[i] == '|'
-					|| buffer.value[i] == '#' || buffer.value[i] == '\"' || buffer.value[i] == '\\')
-				{
-					printError(std::string(1, buffer.value[i]), line, i);
 				}
 			}
 		
@@ -216,17 +209,16 @@ std::vector<token> fsaDriver(std::string filename) {
 			nextState = fsaTable[state][charColumn];
 			charNumber = i-1;
 			
-			
-			if (nextState <= ERROR || nextState > FINAL) {
-				printError(word, currentLineNum, charNumber);		//somthing wrong with input, terminate
-				exit(1);											//display what caused the error
+			if (nextState <= ERROR || nextState > FINAL || state == ERROR) {
+				printError(word, currentLineNum, charNumber);		//somthing wrong with input, terminatei
+				
 			}
 			else if (nextState == FINAL) {				
 			
 				specificKeyword = 0;
 				if (checkKeyword(word)) {
 					//tokenize
-					allTokens.push_back(getToken(tokenType(KEYWORDTK + specificKeyword), word, currentLineNum, (charNumber-word.size() + 1)));
+					allTokens.push_back(getToken(tokenType(KEYWORDTK + specificKeyword), word, currentLineNum, (charNumber-word.size()+1)));
 					word = "";
 					state = s1;
 					nextState = fsaTable[state][charColumn];
@@ -263,9 +255,11 @@ std::vector<token> fsaDriver(std::string filename) {
 
 		//after going through the line there will be one last string the is stored in word, tokenize it.
 		//check if last is keyword
+		
+		nextState = fsaTable[state][charColumn];
 		specificKeyword = 0;
 		if (checkKeyword(word)) {
-			allTokens.push_back(getToken(tokenType(KEYWORDTK + specificKeyword), word, currentLineNum, (charNumber - word.size())));
+			allTokens.push_back(getToken(tokenType(KEYWORDTK + specificKeyword), word, currentLineNum, (charNumber - word.size() + 2)));
 			word = "";		//reset the word after tokenizing
 		}
 		else {
@@ -273,10 +267,11 @@ std::vector<token> fsaDriver(std::string filename) {
 			if (n <= 0) { 
 				charNumber ++;	//since we counted WS as a character, we need to increment
 			}
-			if (nextState <= ERROR || nextState > FINAL) {
+			if (nextState <= ERROR || nextState > FINAL || state == ERROR) {
+		
 				printError(word, currentLineNum, charNumber);		//somthing wrong with input, terminate
-				exit(1);											//display what caused the error
 			}
+			
 			allTokens.push_back(getToken(tokenType(state), word, currentLineNum, (charNumber - word.size()) + 1));
 			word = "";		//reset the word after tokenizing
 		}
@@ -293,7 +288,9 @@ std::vector<token> fsaDriver(std::string filename) {
 
 //will get the fsa table column int
 int getIntFsa(char ch, int l, int n) {
+
 	//the symbols are in a map
+	int temp = columnInt[ch];
 	if (islower(ch)) {
 		return LOWERCASE;
 	}
@@ -305,8 +302,13 @@ int getIntFsa(char ch, int l, int n) {
 	}
 	else if (isdigit(ch)) {
 		return INTEGER;
+	}else if (temp){
+		return temp;
 	}
-	return columnInt[ch];
+	else {
+		std::cout << "ERROR SCANNER: This is an invalid character " << ch << ".\n";
+		printError(std::string(1,ch), l,n+2); //added 2 because we consider whitespaces
+	}
 }
 
 
@@ -316,10 +318,9 @@ bool checkKeyword(std::string str) {
 	int keywordNum = 16;
 	
 	token temp;
-	std::string keywordStrings[keywordNum] = {
-		"start", "stop", "loop", "while", "for", "label", "exit", "listen",
-		"talk", "program", "if", "then", "assign", "declare", "jump", "else"
-	};
+	std::string keywordStrings[16] = {"start", "stop", "loop", "while", "for", "label", "exit", "listen",
+		"talk", "program", "if", "then", "assign", "declare", "jump", "else" };
+
 	for (int i = 0; i < keywordNum; i++) {
 		specificKeyword++;
 		if (str == keywordStrings[i]) {

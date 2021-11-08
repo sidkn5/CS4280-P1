@@ -16,7 +16,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-
+#include <unistd.h>
 void testScanner(std::string filename);
 void printTokenVector(std::vector<token> &tks);
 LinesContainer filter(std::string filename,int lineNumber);
